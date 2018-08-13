@@ -2,12 +2,9 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: 'AWS::Serverless-2016-10-31'
 Description: Role for executing cloud formation in a pipeline
 Parameters:
-  ArtifactBucket:
-    Type: codepipeline-us-east-1-538159253345
-  Env:
-    Type: Dev
-  ProjectName:
-    Type: cftrole
+  ArtifactBucket: codepipeline-us-east-1-538159253345
+  Env: Dev
+  ProjectName: cfnrole
 Resources:
   CFNRole:
     Type: AWS::IAM::Role
