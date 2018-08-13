@@ -2,8 +2,8 @@ version: 0.1
 phases:
   install:
     commands:
-      - aws cloudformation package --template-file cftrole.yaml --s3-bucket lambda-mohan-codepipeline --output-template-file outputcftrole.yaml
+      - aws cloudformation package --template-file cfnrole.yaml --s3-bucket lambda-mohan-codepipeline --output-template-file outputcfnrole.yaml
 artifacts:
   type: zip
   files:
-    - cftrole.yml
+    - cfnrole.yml
