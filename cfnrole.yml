@@ -3,11 +3,11 @@ Transform: 'AWS::Serverless-2016-10-31'
 Description: Role for executing cloud formation in a pipeline
 Parameters:
   ArtifactBucket:
-    Type: String
+    Type: codepipeline-us-east-1-538159253345
   Env:
-    Type: String
+    Type: Dev
   ProjectName:
-    Type: String
+    Type: cftrole
 Resources:
   CFNRole:
     Type: AWS::IAM::Role
