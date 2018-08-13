@@ -7,3 +7,4 @@ artifacts:
   type: zip
   files:
     - cfnrole.yml
+    - outputcfnrole.yml
