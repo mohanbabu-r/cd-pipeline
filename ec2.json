@@ -40,7 +40,7 @@
 
         "Type": "String",
 
-	"Default":"TASK1TRAINING_EC2",
+	"Default":"admin",
 
         "ConstraintDescription": "It must be the name of an existing EC2 KeyPair."
 
@@ -54,7 +54,7 @@
 
         "Type": "String",
 
-	"Default": "vpc-42200f2a",
+	"Default": "vpc-bc7e8bc6",
 
         "ConstraintDescription": "It must be the name of an existing EC2 KeyPair."
 
@@ -68,7 +68,7 @@
 
         "Type": "String",
 
-	"Default": "sg-c85e02a2"
+	"Default": "sg-0dea99cebc9d40d99"
 
       },
 
@@ -80,7 +80,7 @@
 
         "Type": "String",
 
-	"Default": "subnet-66cf9e0e"
+	"Default": "subnet-0829df36"
 
       },
 
@@ -106,7 +106,7 @@
 
         "Description": "Enter the Role Name",
 
-	"Default": "Jenkins"
+	"Default": "ec2-test"
 
       }
 
