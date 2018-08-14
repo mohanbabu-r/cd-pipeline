@@ -1,1 +1,505 @@
+AWSTemplateFormatVersion: '2010-09-09'
 
+Description: AWS CloudFormation Template for frontend build pipeline
+
+
+
+Parameters:
+
+  ProjectName:
+
+    Type: String
+
+    Default: "first-codepipeline"
+
+  GitHubOAuthToken:
+
+    Type: String
+
+    Default: ""
+
+  RepoName:
+
+    Type: String
+
+    Default: "learning"
+
+  ArtifactBucket:
+
+    Type: String
+
+    Default: "jenkins-test-8k"
+
+  Env:
+
+    Type: String
+
+    Default: "dev"
+
+  Role:
+
+    Type: String
+
+    Default: "arn:aws:iam::505728423372:role/BIO"
+
+  CloudFormTemplatePath:
+
+    Type: String
+
+    Default: "cloud-formation-template"
+
+  Branch:
+
+    Type: String
+
+    Default: "master"
+
+  CodeBuildImageType:
+
+    Type: String
+
+    Default: "aws/codebuild/java:openjdk-8"
+
+  BuildStep:
+
+    Type: String
+
+    Default: "step1"
+
+  BuildSpecFile:
+
+    Type: String
+
+    Default: "buildspec.yml"
+
+
+
+Conditions:
+
+  CreateBuildResources: !Equals [ !Ref Env, dev ]
+
+  NoBuildResources: !Not [!Equals [ !Ref Env, dev ]]
+
+
+
+###############################################################################
+
+# Resources
+
+###############################################################################
+
+Resources:
+
+  CFNRole:
+
+    Type: AWS::IAM::Role
+
+    Properties:
+
+      RoleName: "test-codepipeline"
+
+      Path: "/"
+
+      AssumeRolePolicyDocument:
+
+        Statement:
+
+        - Effect: Allow
+
+          Principal:
+
+            Service: ["codepipeline.amazonaws.com","codebuild.amazonaws.com"]
+
+          Action:
+
+          - sts:AssumeRole
+
+      Policies:
+
+        - PolicyName: CodeBuildAccess
+
+          PolicyDocument:
+
+            Version: '2012-10-17'
+
+            Statement:
+
+              - Action:
+
+                - '*'
+
+                Effect: Allow
+
+                Resource: '*'
+
+  BuildConfig:
+
+    Type: AWS::CodeBuild::Project
+
+    Properties:
+
+      Name: "codebuild-bio"
+
+      ServiceRole: !Ref CFNRole
+
+      Artifacts:
+
+        Type: CODEPIPELINE
+
+      Environment:
+
+        ComputeType: BUILD_GENERAL1_SMALL
+
+        Image: !Ref CodeBuildImageType 
+
+        Type: LINUX_CONTAINER
+
+        EnvironmentVariables:
+
+        - Name: PROJECT_NAME
+
+          Value: !Ref ProjectName
+
+        - Name: REPO_NAME
+
+          Value: !Ref RepoName
+
+        - Name: ENV
+
+          Value: !Ref Env
+
+      Tags:
+
+        -
+
+          Key: "Name"
+
+          Value: "CodeBuild-Bio"
+
+        -
+
+          Key: "ENV"
+
+          Value: "dev"
+
+      Source:
+
+        BuildSpec: !Ref BuildSpecFile
+
+        Type: CODEPIPELINE
+
+
+
+  MergeConfig:
+
+    Type: AWS::CodeBuild::Project
+
+    Properties:
+
+      Name: "codebuild-merge-bio"
+
+      ServiceRole: !Ref CFNRole
+
+      Artifacts:
+
+        Type: NO_ARTIFACTS
+
+      Environment:
+
+        ComputeType: BUILD_GENERAL1_SMALL
+
+        Image: !Ref CodeBuildImageType 
+
+        Type: LINUX_CONTAINER
+
+        EnvironmentVariables:
+
+        - Name: PROJECT_NAME
+
+          Value: "MergeCOde"
+
+        - Name: REPO_NAME
+
+          Value: !Ref RepoName
+
+        - Name: ENV
+
+          Value: !Ref Env
+
+      Tags:
+
+        -
+
+          Key: "Name"
+
+          Value: "CodeBuild-Bio"
+
+        -
+
+          Key: "ENV"
+
+          Value: "dev"
+
+      Source:
+
+        BuildSpec: "build_merge.yml"
+
+        Type: GITHUB
+
+        Location: https://github.com/Thaneesha/learning.git
+
+        Auth: 
+
+          Type: OAUTH
+
+          Resource: !Ref GitHubOAuthToken
+
+  ##########################################################
+
+  # Pipeline Configuration
+
+  ##########################################################
+
+  Pipeline:
+
+    Type: AWS::CodePipeline::Pipeline
+
+    Properties:
+
+      Name: "codepipeline-bio"
+
+      RoleArn: !Ref Role
+
+      ArtifactStore:
+
+        Type: S3
+
+        Location: !Ref ArtifactBucket
+
+      Stages:
+
+
+
+      ##########################################################
+
+      # Source Stage
+
+      ##########################################################
+
+      - Name: Source
+
+        Actions:
+
+
+
+        # CODE SOURCE
+
+        - Name: Source
+
+          InputArtifacts: []
+
+          ActionTypeId:
+
+            Category: Source
+
+            Owner: ThirdParty
+
+            Version: '1'
+
+            Provider: GitHub
+
+          OutputArtifacts:
+
+          - Name: source-output
+
+          Configuration:
+
+            Owner: Thaneesha
+
+            Repo: !Ref RepoName
+
+            Branch: !Ref Branch
+
+            OAuthToken: !Ref GitHubOAuthToken
+
+          RunOrder: 1
+
+
+
+
+
+      ##########################################################
+
+      # Build Stage
+
+      ##########################################################
+
+      - Name: Build
+
+        Actions:
+
+
+
+        ##### BUILD STEP #####
+
+        - !If
+
+          - CreateBuildResources
+
+          - Name: Build
+
+            InputArtifacts:
+
+            - Name: source-output
+
+            ActionTypeId:
+
+              Category: Build
+
+              Owner: AWS
+
+              Version: '1'
+
+              Provider: CodeBuild
+
+            OutputArtifacts:
+
+            - Name: build-out
+
+            Configuration:
+
+              ProjectName: !Ref BuildConfig
+
+            RunOrder: 1
+
+          - !Ref AWS::NoValue
+
+
+
+      ##########################################################
+
+      # Approval Stage
+
+      ##########################################################
+
+      - Name: Approval
+
+        Actions:
+
+
+
+        ##### BUILD STEP #####
+
+        - !If
+
+          - CreateBuildResources
+
+          - Name: Approval
+
+            ActionTypeId:
+
+              Category: Approval
+
+              Owner: AWS
+
+              Version: '1'
+
+              Provider: Manual
+
+            Configuration:
+
+              CustomData: "Approve the change"
+
+            RunOrder: 1
+
+          - !Ref AWS::NoValue
+
+
+
+      ##########################################################
+
+      # Merge Stage
+
+      ##########################################################
+
+      - Name: Merge
+
+        Actions:
+
+
+
+        ##### BUILD STEP #####
+
+        - !If
+
+          - CreateBuildResources
+
+          - Name: Merge
+
+            InputArtifacts: 
+
+            - Name: source-output
+
+            ActionTypeId:
+
+              Category: Build
+
+              Owner: AWS
+
+              Version: '1'
+
+              Provider: CodeBuild
+
+            Configuration:
+
+              ProjectName: !Ref MergeConfig 
+
+            RunOrder: 1
+
+          - !Ref AWS::NoValue
+
+      ##########################################################
+
+      # Deployment Stage
+
+      ##########################################################
+
+      - Name: Deploy
+
+        Actions:
+
+
+
+        # Cloudform the deployment
+
+        - Name: GenerateDeployment
+
+          InputArtifacts:
+
+          - Name: build-out
+
+          ActionTypeId:
+
+            Category: Deploy
+
+            Owner: AWS
+
+            Version: '1'
+
+            Provider: CloudFormation
+
+          Configuration:
+
+            ChangeSetName: Deploy
+
+            ActionMode: CREATE_UPDATE
+
+            StackName: !Sub "codepipeline-deployment-${Env}"
+
+            Capabilities: CAPABILITY_NAMED_IAM
+
+            TemplatePath: build-out::ec2.json
+
+            RoleArn: !Ref Role
+
+          RunOrder: 1
