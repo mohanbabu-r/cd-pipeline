@@ -22,13 +22,13 @@ Parameters:
 
     Type: String
 
-    Default: "learning"
+    Default: "cd-pipeline"
 
   ArtifactBucket:
 
     Type: String
 
-    Default: "jenkins-test-8k"
+    Default: "lambda-mohan-codepipeline"
 
   Env:
 
@@ -40,7 +40,7 @@ Parameters:
 
     Type: String
 
-    Default: "arn:aws:iam::505728423372:role/BIO"
+    Default: "arn:aws:iam::174946289336:role/CloudFormationServiceRole"
 
   CloudFormTemplatePath:
 
@@ -246,7 +246,7 @@ Resources:
 
         Type: GITHUB
 
-        Location: https://github.com/Thaneesha/learning.git
+        Location: https://github.com/mohanbabu-r/cd-pipeline.git
 
         Auth: 
 
@@ -314,7 +314,7 @@ Resources:
 
           Configuration:
 
-            Owner: Thaneesha
+            Owner: mohanbabu-r
 
             Repo: !Ref RepoName
 
