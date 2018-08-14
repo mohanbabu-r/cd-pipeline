@@ -1,0 +1,199 @@
+{
+
+  "AWSTemplateFormatVersion": "2010-09-09",
+
+  "Description": "Create EC2 instances",
+
+  "Parameters":
+
+  {
+
+      "InstanceSize": 
+
+      {
+
+        "Description" : "Specify an instance type (size)",
+
+        "Type" : "String",
+
+        "Default" : "t2.micro"
+
+      },
+
+      "AMIIdentifier": 
+
+      {
+
+        "Description": "Please provide the AMI ID to launch the instance from.",
+
+        "Type": "String",
+
+	"Default": "ami-8c122be9"
+
+      },
+
+      "KeyPairIdentifier": 
+
+      {
+
+        "Description": "Please provide the key Pair that should be used to launch the EC2 instance",
+
+        "Type": "String",
+
+	"Default":"TASK1TRAINING_EC2",
+
+        "ConstraintDescription": "It must be the name of an existing EC2 KeyPair."
+
+      },
+
+      "VPCIdentifier": 
+
+      {
+
+        "Description": "Please provide the VPC that should be used to launch the EC2 instance",
+
+        "Type": "String",
+
+	"Default": "vpc-42200f2a",
+
+        "ConstraintDescription": "It must be the name of an existing EC2 KeyPair."
+
+      },
+
+      "SecurityGroupIdentifier": 
+
+      {
+
+        "Description": "Please Provide Security Group To be attached to the Instance",
+
+        "Type": "String",
+
+	"Default": "sg-c85e02a2"
+
+      },
+
+      "SubnetIdentifier": 
+
+      {
+
+        "Description": "Please Provide The Subnet where the Insances Should Be launched",
+
+        "Type": "String",
+
+	"Default": "subnet-66cf9e0e"
+
+      },
+
+      "Name":
+
+      {
+
+        "Description": "This tag specifies the name of EC2 instance",
+
+        "Type": "String", 
+
+	"Default": "TESTCODEPIPELINE"
+
+      },
+
+      "InstanceIAMRole": 
+
+      {
+
+        "ConstraintDescription": "Please specify valid IAM Role to be associated with instance. Select No-Role if no role needs to be attached",
+
+        "Type": "String",
+
+        "Description": "Enter the Role Name",
+
+	"Default": "Jenkins"
+
+      }
+
+  },
+
+  "Metadata":
+
+  {
+
+    "AWS::CloudFormation::Interface": 
+
+    {
+
+      "ParameterGroups" : [
+
+      {
+
+        "Label" : { "default" : "EC2 Server Configuration" },
+
+        "Parameters" : [ "AMIIdentifier", "InstanceSize","KeyPairIdentifier","VPCIdentifier","SecurityGroupIdentifier","SubnetIdentifier","InstanceIAMRole"]
+
+      },
+
+      {
+
+        "Label" : { "default":"Amazon EC2 Tags" },
+
+        "Parameters" : ["Name"]
+
+      }
+
+      ]
+
+    }
+
+  },
+
+  "Resources":
+
+  {
+
+    "Ec2Instance" :   
+
+    {
+
+      "Type": "AWS::EC2::Instance",
+
+      "Properties": 
+
+      {
+
+        "KeyName": {"Ref": "KeyPairIdentifier"},
+
+        "ImageId": {"Ref": "AMIIdentifier"},
+
+        "InstanceType": {"Ref": "InstanceSize"},
+
+        "SecurityGroupIds": [{"Ref": "SecurityGroupIdentifier"}],
+
+        "IamInstanceProfile" :   {"Ref" : "InstanceIAMRole"},
+
+        "SubnetId" : {"Ref" : "SubnetIdentifier"},
+
+        "Monitoring" : false,
+
+        "Tags": [{"Key": "Name", "Value" : {"Ref": "Name"}}]
+
+      }
+
+    }
+
+  },
+
+ "Outputs": {
+
+       "StackName": {
+
+           "Description": "Stack name",
+
+           "Value": {
+
+               "Fn::Sub": "${AWS::StackName}"
+
+           }
+
+       }
+
+   }
+
+}
